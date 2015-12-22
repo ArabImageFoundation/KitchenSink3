@@ -2,6 +2,34 @@ import * as models from './models';
 import Immutable from 'immutable'
 import {resolve,reject,assign} from '../utils';
 
+function matchesKey(key, event) {
+    const charCode = event.keyCode || event.which;
+    const char = String.fromCharCode(charCode);
+    return key.name.toUpperCase() === char.toUpperCase() &&
+    key.alt === event.altKey &&
+    key.ctrl === event.ctrlKey &&
+    key.meta === event.metaKey &&
+    key.shift === event.shiftKey;
+}
+
+const keys = {
+    'up':'up'
+,   'down':'down'
+,   'left':'left'
+,   'right':'right'
+,   'cancel':'escape'
+,   'confirm':'enter'
+}
+
+function currentKey(key,evt){
+    for(key in keys){
+        if(matchesKey(keys[key], evt)){
+            return key;
+        }
+    }
+    return null;
+}
+
 export default {
     asyncAction:{
         meta:{} //gets merged with meta provided from the user
@@ -15,7 +43,20 @@ export default {
             /** must return state **/
         }
     }
-,    detailedAsyncAction:{
+,   onKeyDown:{
+        evt:{}
+    ,   async({evt},{dispatch,getState}){
+            const state = getState();
+            const behavior = currentKey(key, evt);
+            if(!behavior){return resolve};
+            if(state.get('columns').size){
+                if(behavior == 'cancel' || behavior == 'confirm'){
+                    dispatch({type:'removeColumn'});
+                }
+            }
+        }
+    }
+,   detailedAsyncAction:{
         async(meta,{disp}){
             return new Promise((resolve,reject)=>{
                 setTimeout(()=>{
@@ -41,57 +82,114 @@ export default {
 ,    normalAction:{
         meta:{}
     }
-,    addColumn:{
+,   createItem:{
         meta:{
             type:''
-        ,   view:''
-        ,   name:''
+        ,   parentPath:[]
         }
-    ,    reducer:(state,{type,name,view,value,index})=>{
-            const hasIndex = (typeof index!== 'undefined')
-            if(!hasIndex){
-                index = state.get(type).size;
-            }
-            const hasParent = state.get('columns').size>0;
-            const columnProps = Immutable.fromJS({
-                type
-            ,   view
-            ,   index
-            ,   name
-            ,   relations:{}
-            })
-            const stateColumnsUpdated = state.updateIn(
-                ['columns']
-            ,   (columns)=>columns.push(columnProps)
-            );
-            if(!hasIndex){
-                 const stateWithNewObject = stateColumnsUpdated.updateIn(
-                    [type]
-                ,   (collection)=>collection.push(
-                        Immutable.fromJS({
-                            type
-                        ,   saved:false
-                        ,   value:{}
-                        ,   index
-                        })
-                    )
-                 );
-                 if(hasParent){
-                     const columns = state.get('columns')
-                     const previousColumn = columns.last();
-                     const parentIndex = previousColumn.get('index');
-                     const parentType = previousColumn.get('type')
-                     const parentKey = name;
-                     return stateWithNewObject.updateIn(
-                         [parentType,parentIndex,'relations',parentKey]
-                    ,   Immutable.List()
-                    ,   relations=>relations.push([type,index])
-                    )
-                 }
-                 return stateWithNewObject;
+    ,   reducer(state,{type,parentPath}){
+            var parents;
+            if(parentPath){
+                const [type,index] = parentPath;
+                parents = Immutable.Map({'parents':Immutable.List([index])});
             }else{
-                return stateColumnsUpdated;
+                parents = Immutable.Map();
             }
+            var index;
+            const stateWithNewItem = state.updateIn([type],function(collection){
+                index = collection.size;
+                const item = Immutable.Map({
+                    index
+                ,   saved:false
+                ,   relations:Immutable.Map()
+                ,   value:Immutable.Map()
+                ,   errors:Immutable.Map()
+                ,   valids:Immutable.Map()
+                ,   hasErrors:false
+                ,   parents
+                })
+                return collection.push(item);
+            })
+            if(!parentPath){return stateWithNewItem;}
+            return stateWithNewItem.updateIn(parentPath,Immutable.List(),(relation)=>relation.push(index));
+        }
+    }
+,   add:{
+        meta:{
+            index:''
+        ,   type:''
+        ,   parentPath:[]
+        }
+    ,   reducer(state,{index,type,parentPath}){
+            return state.updateIn(parentPath,Immutable.List(),relation=>relation.push(index))
+                .updateIn([type,index,'parents',parentPath[0]],Immutable.List(),relation=>relation.push(parentPath[1]))
+        }
+    }
+,   remove:{
+        meta:{
+            index:''
+        ,   type:''
+        ,   parentPath:[]
+        }
+    ,   reducer(state,{index,type,parentPath}){
+            return state.updateIn(parentPath,relation=>relation.filterNot(idx=>idx==index))
+                .updateIn([type,index,'parents',parentPath[0]],relation=>relation.filterNot(idx=>idx==parentPath[1]))
+        }
+    }
+,   validate:{
+        async({validator,path,value},{disp}){
+            if(!validator){
+                return resolve(value);
+            }
+            return validator(value)
+                .catch(errors=>{
+                    disp('HAS_ERRORS',{error:true,payload:{errors},meta:{path}})
+                    throw new Error(errors.join(','))
+                })
+        }
+    ,   reducer:{
+            hasErrors(state,{path},{errors}){
+
+                const [type,index,propName] = path;
+
+                return state
+                    .setIn([type,index,'errors',propName],Immutable.List(errors))
+                    .setIn([type,index,'valids',propName],false)
+                    .setIn([type,index,'hasErrors'],true)
+            }
+        ,   success(state,{path}){
+                const [type,index,propName] = path;
+                return state
+                    .deleteIn([type,index,'errors',propName])
+                    .setIn([type,index,'valids',propName],true)
+                    .setIn([type,index,'hasErrors'],false)
+            }
+        }
+    }
+,   onChange:{
+        meta:{
+            path:[]
+        ,   value:[]
+        }
+    ,   reducer(state,{path,value}){
+            const [type,index,propName] = path;
+            const val = {[propName]:value};
+            return state.updateIn([type,index],function(item){
+                return item.merge({
+                    value:item.get('value').merge(val)
+                ,   saved:false
+                ,   errors:item.get('errors').deleteIn([propName])
+                ,   valids:item.get('valids').set(propName,false)
+                })
+            })
+        }
+    }
+,    addColumn:{
+        reducer:(state,props)=>{
+            const column = Immutable.fromJS({props});
+            return state.updateIn(
+                ['columns'],columns =>columns.push(column)
+            )
        }
     }
 ,    save:{

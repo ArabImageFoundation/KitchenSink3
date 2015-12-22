@@ -1,20 +1,21 @@
-import Model,{t} from './Model';
-import actions from '../redux/actionsReducer';
+import React,{Component} from 'react'
+import makeModel from './makeModel';
+import Validator from './Validator';
 
-export default Model('Studio',{
-    schema:{
-        name:t.String
-    ,   address:t.maybe(t.String)
-    ,   telephone:t.maybe(t.String)
-    ,   biography:t.maybe(t.String)
-    ,   source:t.maybe(t.String)
-    }
-,   options:{}
-,   methods:{
-        search(str){
-            return [
-                {name:'dfsdfd'}
-            ]
+export default makeModel(
+    'Studio'
+,   [
+        {
+            name:'name'
+        ,   type:'text'
         }
-    }
-})
+    ,   {
+            name:'address'
+        ,   type:'text'
+        }
+    ,   {
+            name:'telephone'
+        ,   type:'tel'
+        }
+    ]
+);

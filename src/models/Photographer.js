@@ -1,18 +1,23 @@
-import {t} from './Model';
-import React from 'react';
-import Model from './Model';
-import Studio from './Studio'
+import React,{Component} from 'react'
+import makeModel from './makeModel';
+import Validator from './Validator';
+import Studio from './Studio';
 
-
-export default Model('Photographer',{
-    schema:{
-        name:t.String
-    ,   nationality:t.maybe(t.String)
-    ,   studio:Studio
-    }
-,   options:{
-        relations:{
-            studio:['hasOne',true]
+export default makeModel(
+    'Photographer'
+,   [
+        {
+            name:'name'
+        ,   type:'text'
+        ,   validate:Validator.String
         }
-    }
-})
+    ,	{
+    		name:'studio'
+    	,	type:Studio
+    	}
+    ,   {
+            name:'address'
+        ,   type:'text'
+        }
+    ]
+);

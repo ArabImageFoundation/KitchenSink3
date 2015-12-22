@@ -24,7 +24,9 @@
     "classnames": "^2.2.1",
     "css-loader": "^0.23.0",
     "immutable": "^3.7.6",
+    "material-design-icons": "^2.1.1",
     "mocha": "^2.3.4",
+    "parse-key": "^0.2.1",
     "react": "^0.14.3",
     "react-addons-css-transition-group": "^0.14.3",
     "react-addons-transition-group": "^0.14.3",
@@ -42,5 +44,8 @@
     "tcomb-form": "^0.7.10",
     "webpack": "^1.12.9",
     "webpack-dev-server": "^1.14.0"
+  },
+  "devDependencies": {
+    "babel-plugin-react-require": "^2.1.0"
   }
 }

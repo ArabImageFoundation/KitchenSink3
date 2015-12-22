@@ -34,14 +34,7 @@ function willLeave(key, style) {
 
 function mapStateToProps(props){
     return {
-        columns:props.get('columns')
-            .map(column=>({
-                type:column.get('type')
-            ,   view:column.get('view')
-            ,   index:column.get('index')
-            ,   name:column.get('name')
-            }))
-            .toJS()
+        columns:props.get('columns').toJS()
     }
 }
 

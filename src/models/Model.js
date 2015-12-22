@@ -1,175 +1,298 @@
-import React from 'react';
-import assign from '../../utils';
-import * as Factories from '../tcomb-forms';
-import {connect} from 'react-redux';
-import t from 'tcomb-form';
-import actions from '../redux/actionsReducer';
+import React,{Component} from 'react';
+import cx from 'classnames';
+import {IconCheck,IconError,MessageHelp,MessageError} from '../UI'
 
-const Form = t.form.Form;
+function isNil(val){return val==null;}
 
-Form.prototype.removeErrors = function removeErrors(){
-    this.refs.input.removeErrors();
+function getDef(val,def){
+    if(isNil(val)){return def;}
+    return val;
 }
 
-function merge(A:Object,B:Object){
-    if(t.Nil.is(A)){return Object.assign({},B);}
-    if(t.Nil.is(B)){return Object.assign({},A);}
-    const C = Object.assign({},A);
-    Object.keys(B).forEach(function(key){
-        const val = B[key];
-        if(!(key in C) || !t.Object.is(val)){
-            C[key] = val;
-            return;
+class Model extends Component{
+    constructor(props,context){
+        super(props,context);
+        this.onChangeTimeout = null;
+        this.state = {
+            focused:null
         }
-        C[key] = merge(C[key],val);
-    })
-    return C;
-}
-
-function attachProps(obj,displayName,type,schema,options){
-    obj.displayName = displayName;
-    obj.type = type;
-    obj.schema = schema
-    obj.options = options;
-    return obj;
-}
-
-function transferMethods(methods,HOC){
-    methods.forEach(function(name){
-        HOC.prototype[name] = function(){
-            return this.getWrappedInstance()[name]();
+    }
+    setOnChangeTimeout(name,path,time=300){
+        if(!path){throw new Error('no path defined for validate')}
+        clearTimeout(this.onChangeTimeout);
+        const that = this;
+        this.onChangeTimeout = setTimeout(function(){
+            that.validateField(name,path);
+        },time)
+    }
+    validateField(name,path){
+        const validate = this.props.actions.validate;
+        const value = this.props.value[name];
+        const validator = this.getValidator().key(name);
+        validate(path,value,validator);        
+    }
+    setOnChangeTimeoutFor(name,path){
+        return this.setOnChangeTimeout(name,path);
+    }
+    onFocus(name){
+        var that = this;
+        return function(){
+            that.setState({focused:name});
         }
-    })
-}
+    }
+    onBlur(name){
+        var that = this;
+        return function(){
+            const path = that.getPath(name);
+            that.setState({focused:null});
+            that.validateField(name,path)
+        }
+    }
+    onChange(name){
+        const that = this;
+        const actions = this.props.actions;
+        const path = this.getPath(name);
+        return function(evt){
+            const value = evt.target.value;
+            actions.onChange(path,value);
+            that.setOnChangeTimeoutFor(name,path);
+        }
+    }
+    getValidator(){
+        return this.constructor.validator;
+    }
+    getSpec(){
+        return this.constructor.spec;
+    }
+    getTypeName(){
+        return this.constructor.type;
+    }
+    getPath(suffix){
+        const index = this.props.index;
+        const type = this.getTypeName()
+        return !suffix ? [type,index] : [type,index,suffix];
+    }
+    getValueFor(name){
+        return this.props.value && this.props.value[name]
+    }
+    getErrorsFor(name){
+        return this.props.errors && this.props.errors[name];
+    }
+    getIsValidFor(name){
+        return this.props.valids && this.props.valids[name];
+    }
+    getRelatedItemsFor(name){
+        return this.props.relations[name];
+    }
+    getRelationProps(spec){
+        var {name,label,help,type} = spec;
+        if(this[`getRelationProps_${name}`]){
+            return this[`getRelationProps_${name}`](spec);
+        }
+        const include = this.getRelatedItemsFor(name) || [];
+        const Comp = type;
+        const parentPath = this.getPath().concat(['relations',name]);
+        return {
+        	include
+        ,	Comp
+        ,	parentPath
+        };
+    }
+    renderRelation(name,props,key){
+        if(this[`renderRelation_${name}`]){
+            return this[`renderRelation_${name}`](props,key);
+        }
+        const {Comp,include,parentPath} = props;
+        const managerProps = {
+        	include
+        ,	mode:'List'
+        ,	childrenView:'Form'
+        ,	parentPath
+        ,	key
+        ,	allowLoad:true
+        }
+        return (<div>
+            <label>{name}</label>
+            <Comp.Manager {...managerProps}/>
+        </div>)
+    }
+    getInputProps(spec){
+        var {name,label,help,type} = spec;
+        if(this[`getInputProps_${name}`]){
+            return this[`getInputProps_${name}`](spec)
+        }
+        if(this[`getInputPropsType_${type}`]){
+            return this[`getInputPropsType_${type}`](spec)
+        }
+        type = getDef(type,'text');
+        label = getDef(label,name);
+        const focused = this.state.focused == name;
+        const id = `${this.getTypeName()}[${this.props.index}][${name}]`;
 
-type makeModelArg = {schema:Object,options:?Object,methods:?Object}
-export default function makeModel(name:String,{schema,options,methods}:makeModelArg){
-
-    options = Object.assign({},options);
-    methods = Object.assign({},methods);
-
-    class Model extends Factories.ModelStruct{}
-
-    const struct = {};
-    const fields = Object.assign({},options.fields);
-    const relations = {};
-
-    if(options.relations){
-        Object.keys(options.relations).forEach(function(key){
-            const relation = options.relations[key];
-            const [type,args] = relation;
-            if(type=='hasOne'){
-                relations[key] = {type,optional:args}
+        const labelProps = {
+            htmlFor:id
+        }
+        const inputProps = {
+            onChange:this.onChange(name)
+        ,   onBlur:this.onBlur(name)
+        ,   onFocus:this.onFocus(name)
+        ,   value:this.getValueFor(name)
+        ,   type
+        ,   id
+        }
+        return {
+            label:labelProps
+        ,   input:inputProps
+        ,   title:label
+        ,   errors:this.getErrorsFor(name)
+        ,   isValid:this.getIsValidFor(name)
+        ,   focused
+        ,   help
+        }
+    }
+    renderInputType_textarea(name,props,key){
+        const className = cx(
+            'input-control'
+        ,   {
+                focused:props.focused
+        ,       hasErrors:props.errors && props.errors.length
             }
+        )
+
+        return (
+            <div key={key} className={className}>
+                <label {...props.label}>{props.title}</label>
+                <div className='input-field'>
+                    <textarea {...props.input}/>
+                    {props.isValid && <IconCheck/>}
+                </div>
+                <div className='input-info'>
+                    {props.errors && props.errors.map((err,index)=><MessageError key={index} text={err.replace('$key$',props.title)}/>)}
+                    {props.help && <MessageHelp text={props.help}/>}
+                </div>
+            </div>
+        )
+
+    }
+    renderInput(name,props,key,type){
+        if(this[`renderInput_${name}`]){
+            return this[`renderInput_${name}`](props,key)
+        }
+        if(this[`renderInputType_$type`]){
+            return this[`renderInputType_${type}`](name,props,key);
+        }
+
+
+        const className = cx(
+            'input-control'
+        ,   {
+                focused:props.focused
+        ,       hasErrors:props.errors && props.errors.length
+            }
+        )
+
+        return (
+            <div key={key} className={className}>
+                <label {...props.label}>{props.title}</label>
+                <div className='input-field'>
+                    <input {...props.input}/>
+                    {props.isValid && <IconCheck/>}
+                </div>
+                <div className='input-info'>
+                    {props.errors && props.errors.map((err,index)=><MessageError key={index} text={err.replace('$key$',props.title)}/>)}
+                    {props.help && <MessageHelp text={props.help}/>}
+                </div>
+            </div>
+        )
+    }
+    renderInputs(){
+        const inputs = this.getSpec();
+        return inputs.map((spec,key)=>{
+            const {name,type} = spec;
+            if(typeof type == 'function'){
+                const props = this.getRelationProps(spec);
+                return this.renderRelation(name,props,key)
+            }
+            const props = this.getInputProps(spec);
+            return this.renderInput(name,props,key,type);
         })
     }
-
-    function mapStateToProps(props,{options,value:givenValue}){
-        if(t.Nil.is(options.index) && givenValue && givenValue.__index){
-            options.index = givenValue.__index;
+    getFieldProps(spec){
+        var {name,label,type} = spec;
+        if(this[`getFieldProps_${name}`]){
+            return this[`getFieldProps_${name}`](spec)
         }
-        const index = options.index;
-        if(!t.Nil.is(index)){
-            const item = props.get(name).get(index);
-            const saved = item.get('saved');
-            const value = item.get('value').toJS();
-            const relations = item.get('relations');
-            if(relations){
-                relations.forEach(function(list,key){
-                    value[key] = list.map(function(path){
-                        const [,index] = path;
-                        path = path.concat('value');
-                        const child = props.getIn(path).toJS()
-                        child.__index = index;
-                        return child;
-                    }).toJS()
-                })
-            }
-            return {value,saved}
-        }
-        console.log(givenValue)
-        throw new Error('no index')
-    }
-
-    function mapDispatchToProps(dispatch){
+        label = getDef(label,name);
         return {
-            actions:{
-                save:(index,value)=>{
-                    return dispatch(actions.save({index,value,type:name}))
-                }
-            ,   load:(index,parentPath)=>{
-                    dispatch(actions.addColumn({
-                        type:name
-                    ,   view:'edit'
-                    ,   index
-                    ,   name:parentPath
-                    }))
-                }
-            }
+            label
+        ,   value:this.getValueFor(name)
         }
     }
-    function getTcombFormFactory(){
-         return HOC;
-    }
-
-
-    Object.keys(schema).forEach(function(key){
-        const obj = schema[key];
-        if(typeof obj=='function' && obj.schema){
-            if(key in relations){
-                struct[key] = t.list(obj.type)
-                fields[key] = merge(
-                    {
-                        item:merge(
-                            {
-                                view:'summary'
-                            ,   parentPath:key
-                            }
-                        ,   obj.options
-                        )
-                    }
-                ,   fields[key]
-                );
-            }else{
-                struct[key] = obj.type;
-                fields[key] = merge(obj.options,fields[key]);
-            }
-        }else{
-            struct[key] = obj;
+    renderField(name,props,key){
+        if(this[`renderField_${name}`]){
+            return this[`renderField_${name}`](props,key)
         }
-    })
-
-    const type = t.struct(struct);
-
-    type.getTcombFormFactory = getTcombFormFactory;
-
-    options.fields = fields;
-    options.relations = relations;
-
-    attachProps(Model,name,type,schema,options)
-    Model.defaultProps = {
-        ctx:{
-            path:[]
-        ,   context:{}
-        ,   auto:'labels'
-        ,   i18n:t.form.Form.i18n
-        }
-    ,   type
-    ,   options:{}
+        return (
+            <div key={key}>
+                <span>{props.value}</span>
+            </div>
+        )
     }
-
-    Object.keys(methods).forEach(function(key){
-        const func:Function = methods[key];
-        Model.prototype[key] = func;
-    });
-    const HOC = connect(mapStateToProps,mapDispatchToProps,false,{withRef:true})(Model);
-
-    transferMethods(['removeErrors','getValue'],HOC)
-
-    attachProps(HOC,name,type,schema,options)
-
-    return HOC;
-
+    renderFields(){
+        const inputs = this.getSpec();
+        return inputs.map((spec,key)=>{
+            const {name} = spec;
+            const props = this.getFieldProps(spec)
+            return this.renderField(name,props,key)
+        })
+    }
+    getView(){
+        return this.props.view || 'Summary';
+    }
+    summary(){
+        const inputs = this.getSpec();
+        const main = inputs[0];
+        const propName = main.name;
+        return (this.getValueFor(propName) || `empty \`${this.getTypeName()}\``);
+    }
+    getClassName(view){
+        const typeName = this.getTypeName();
+        return cx(
+            'Model'
+        ,   `Model${typeName}`
+        ,   `view-${view}`
+        )
+    }
+    renderSummary(){
+        const summary = this.summary();
+        const hasErrors = this.props.hasErrors;
+        const className = this.getClassName('Summary');
+        return (<div className={className}>
+                {summary}
+                {hasErrors && <IconError/>}
+        </div>)
+    }
+    renderForm(){
+        const inputs = this.renderInputs();
+        const className = this.getClassName('Form');
+        return (<div className={className}>
+            {inputs}
+            <button onClick={this.props.actions.removeColumn}>ok</button>
+        </div>)
+    }
+    renderFull(){
+        const fields = this.renderFields();
+        const className = this.getClassName('Full');
+        return (<div className={className}>
+            {fields}
+        </div>)
+    }
+    render(){
+        const view = this.getView();
+        const renderFunction = `render${view}`;
+        if(!this[renderFunction]){throw new Error(`there is no ${renderFunction} function defined on ${this.getTypeName()}`);}
+        return this[renderFunction]();
+    }
 }
 
-export {t};
+export default Model
