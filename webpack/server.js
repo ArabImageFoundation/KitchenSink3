@@ -22,7 +22,7 @@ base.module.loaders[0].loaders = [
 var devServer = {
     contentBase: dirs.public
 ,   port:8083
-,   host:'localhost'
+,   host:'0.0.0.0'
 ,   hot: hot
 ,   historyApiFallback: false
 ,   quiet: false
