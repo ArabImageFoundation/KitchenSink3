@@ -121,7 +121,7 @@ class ModelManager extends Component{
     }
     getItemParents(index,type,parentIndex){
         const collection = this.props.collection;
-        const parents = collection.get(index).get('parents');
+        const parents = collection.get(index).get('relations');
         if(!type){
             return parents.toJS();
         }

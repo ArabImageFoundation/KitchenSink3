@@ -7,8 +7,13 @@ import ModelManager from './ModelManager';
 
 function isNil(val){return val==null;}
 
-
 export default function make(name,spec,...methods){
+
+    spec = spec.map(s=>
+        (typeof s == 'string') ? {name:s,type:'text'}:
+        (typeof s == 'function') ? {name:s.type,type:s} :
+        s
+    );
 
     const byName = {};
     spec.forEach(s=>{
@@ -28,6 +33,10 @@ export default function make(name,spec,...methods){
         const name = method.name
         _Model.prototype[name] = method;
     })
+
+    function extend(name,newSpec,...newMethods){
+        return make(name,[...spec,...newSpec],...[...methods,...newMethods]);
+    }
 
     function mapDispatchToProps(dispatch){
         return {  
@@ -99,8 +108,9 @@ export default function make(name,spec,...methods){
     ,   mapDispatchToProps
     )(_ModelManager);
 
-    connectedModel.Manager = connectedModelManager;
 
+    connectedModel.Manager = connectedModelManager;
+    connectedModel.extend = extend;
     return connectedModel;
 
 }

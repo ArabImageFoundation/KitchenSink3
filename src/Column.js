@@ -4,7 +4,7 @@ import {IconClose} from './UI';
 import * as Models from './models';
 
 class Column extends React.Component{
-    static shift = 30
+    static shift = 70
     constructor(props,context){
         super(props,context);
     }

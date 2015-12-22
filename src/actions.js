@@ -88,12 +88,12 @@ export default {
         ,   parentPath:[]
         }
     ,   reducer(state,{type,parentPath}){
-            var parents;
+            var relations;
             if(parentPath){
                 const [type,index] = parentPath;
-                parents = Immutable.Map({'parents':Immutable.List([index])});
+                relations = Immutable.Map({'relations':Immutable.List([index])});
             }else{
-                parents = Immutable.Map();
+                relations = Immutable.Map();
             }
             var index;
             const stateWithNewItem = state.updateIn([type],function(collection){
@@ -101,12 +101,11 @@ export default {
                 const item = Immutable.Map({
                     index
                 ,   saved:false
-                ,   relations:Immutable.Map()
                 ,   value:Immutable.Map()
                 ,   errors:Immutable.Map()
                 ,   valids:Immutable.Map()
                 ,   hasErrors:false
-                ,   parents
+                ,   relations
                 })
                 return collection.push(item);
             })
@@ -122,7 +121,7 @@ export default {
         }
     ,   reducer(state,{index,type,parentPath}){
             return state.updateIn(parentPath,Immutable.List(),relation=>relation.push(index))
-                .updateIn([type,index,'parents',parentPath[0]],Immutable.List(),relation=>relation.push(parentPath[1]))
+                .updateIn([type,index,'relations',parentPath[0]],Immutable.List(),relation=>relation.push(parentPath[1]))
         }
     }
 ,   remove:{
@@ -133,7 +132,7 @@ export default {
         }
     ,   reducer(state,{index,type,parentPath}){
             return state.updateIn(parentPath,relation=>relation.filterNot(idx=>idx==index))
-                .updateIn([type,index,'parents',parentPath[0]],relation=>relation.filterNot(idx=>idx==parentPath[1]))
+                .updateIn([type,index,'relations',parentPath[0]],relation=>relation.filterNot(idx=>idx==parentPath[1]))
         }
     }
 ,   validate:{

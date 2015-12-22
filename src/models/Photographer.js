@@ -2,6 +2,7 @@ import React,{Component} from 'react'
 import makeModel from './makeModel';
 import Validator from './Validator';
 import Studio from './Studio';
+import Photo from './Photo';
 
 export default makeModel(
     'Photographer'

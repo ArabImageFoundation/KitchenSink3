@@ -2,6 +2,10 @@ body,html
     width 100%
     height 100%
     overflow hidden
+#Content
+    width 100%
+    height 100%
+    overflow auto
 .Column
     position absolute
     top 0
@@ -10,6 +14,47 @@ body,html
     background-color #fcfcfc
     box-shadow 0 14px 45px rgba(0, 0, 0, 0.25), 0 10px 18px rgba(0, 0, 0, 0.22)
     transition right 400ms ease-out
+    button
+        box-shadow none
+    .contents
+        overflow-y auto
+        position absolute
+        top 4em
+        bottom 1em
+        left 1em
+        right 1em
+        box-sizing border-box
+        padding 4em
+    .header
+        background #26a69a
+        padding 1em
+        position relative
+        .close
+            position absolute
+            top 1em
+            right 1em
+            min-width auto
+            padding .5em
+            background #26a69a
+            color rgba(255,255,255,0.7)
+    .breadCrumb
+        font-size 18px
+        color rgba(255,255,255,0.7)
+        vertical-align middle
+        &:before
+            content: '\E5CC';
+            color: rgba(255,255,255,0.7);
+            vertical-align: top;
+            display: inline-block;
+            font-family: 'Material Icons';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 25px;
+            margin: 0 10px 0 8px;
+            -webkit-font-smoothing: antialiased;
+        &:first-child
+            &:before
+                content none
     &.ColumnItem-enter
         transform translate3d(100%,0,0)
         &.ColumnItem-enter-active
@@ -20,6 +65,11 @@ body,html
         &.ColumnItem-leave-active
             transform translate3d(100%,0,0)
             transition transform 200ms ease-in
+
+.image-container,.img
+    display inline-block
+    .img
+        display block
 
 .ColumnManager
     position absolute

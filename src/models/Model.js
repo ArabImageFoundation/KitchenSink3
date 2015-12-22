@@ -52,8 +52,8 @@ class Model extends Component{
         const that = this;
         const actions = this.props.actions;
         const path = this.getPath(name);
-        return function(evt){
-            const value = evt.target.value;
+        return function(evt,val){
+            const value = val || evt.target.value;
             actions.onChange(path,value);
             that.setOnChangeTimeoutFor(name,path);
         }
@@ -85,33 +85,40 @@ class Model extends Component{
         return this.props.relations[name];
     }
     getRelationProps(spec){
-        var {name,label,help,type} = spec;
+        var {name,label,help,type,options} = spec;
         if(this[`getRelationProps_${name}`]){
             return this[`getRelationProps_${name}`](spec);
         }
         const include = this.getRelatedItemsFor(name) || [];
         const Comp = type;
+        options = options || {};
         const parentPath = this.getPath().concat(['relations',name]);
+        const max = getDef(options.max,Infinity);
+        const maxReached = include.length >= max;
+        const allowLoad = maxReached ? false : getDef(options.allowLoad,true);
+        const allowCreate = maxReached? false : getDef(options.allowCreate,true);
         return {
         	include
         ,	Comp
         ,	parentPath
+        ,   allowLoad
+        ,   allowCreate
         };
     }
     renderRelation(name,props,key){
         if(this[`renderRelation_${name}`]){
             return this[`renderRelation_${name}`](props,key);
         }
-        const {Comp,include,parentPath} = props;
+        const {Comp,include,parentPath,allowCreate,allowLoad} = props;
         const managerProps = {
         	include
         ,	mode:'List'
         ,	childrenView:'Form'
         ,	parentPath
-        ,	key
-        ,	allowLoad:true
+        ,   allowLoad
+        ,   allowCreate
         }
-        return (<div>
+        return (<div key={key}>
             <label>{name}</label>
             <Comp.Manager {...managerProps}/>
         </div>)
@@ -178,7 +185,7 @@ class Model extends Component{
         if(this[`renderInput_${name}`]){
             return this[`renderInput_${name}`](props,key)
         }
-        if(this[`renderInputType_$type`]){
+        if(this[`renderInputType_${type}`]){
             return this[`renderInputType_${type}`](name,props,key);
         }
 

@@ -8,5 +8,6 @@ export default Immutable.fromJS({
 ,	Contract:[]
 ,	Studio:[]
 ,	Album:[]
+,	File:[]
 ,	Object:[]
 })

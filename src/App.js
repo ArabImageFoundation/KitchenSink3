@@ -6,20 +6,21 @@ import * as Models from './models';
 import actions from './redux/actionsReducer';
 //import ModelsManager from './ModelsManager';
 
-/**
-const Managers = [];
-Object.keys(Models).forEach(model=>{
-    Managers.push(ModelsManager(model,Models[model]));
+
+const Managers = Object.keys(Models).map(name=>{
+    const Model = Models[name];
+    const Manager = Model.Manager;
+    return (<div className='manager' key={name}>
+        <h1>{name}</h1>
+        <Manager childrenView='Form'/>
+    </div>)
 })
-**/
+
 class App extends Component{
    render(){
         return(<div>
             press `ctrl-h` to hide the debugger, `ctrl-q` to move it around the screen
-        	<h1>Studio</h1>
-        	<Models.Studio.Manager childrenView='Form'/>
-        	<h1>Photographer</h1>
-        	<Models.Photographer.Manager childrenView='Form'/>
+            {Managers}
         	<ColumnManager/>
         </div>)
     }
