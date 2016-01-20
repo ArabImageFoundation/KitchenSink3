@@ -3,17 +3,31 @@ import makeModel from './makeModel';
 import Validator from './Validator';
 import File from './File';
 import Photographer from './Photographer';
+import Studio from './Studio';
 
 export default makeModel(
     'Photo'
 ,   [
         'reference'
+    ,   'title'
+    ,   'subject'
     ,   {
             name:'Photographer'
         ,   type:Photographer
         ,   options:{
                 max:1
             ,   allowCreate:false
+            ,   allowRemove:true
+            ,   invert:true
+            }
+        }
+    ,   {
+            name:'Studio'
+        ,   type:Studio
+        ,   options:{
+                max:1
+            ,   allowCreate:false
+            ,   allowRemove:true
             ,   invert:true
             }
         }
@@ -36,10 +50,10 @@ export default makeModel(
             preview.push(<span key='preview'>(no files}</span>);
         }
         if(!reference){
-            preview.push(<span key='reference'>(no reference)</span>)
+            preview.push(<span key='reference' className='reference'>(no reference)</span>)
         }
         else{
-            preview.push(<span key='reference'>{reference}</span>)
+            preview.push(<span key='reference' className='reference'>{reference}</span>)
         }
         return <div>{preview}</div>
     }

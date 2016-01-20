@@ -1,23 +1,23 @@
 import React,{PropTypes,Component} from 'react'
 import {EMPTY,DONE,ERROR,LOADING} from './constants';
 import Image from './Image';
-import UploadField from './UploadField';
+import File from './File';
 
 
-class ImageUploadField extends Component{
+class FileImage extends Component{
 	static propTypes = {
 		onChange:PropTypes.func
 	,	name:PropTypes.string
 	,	value:PropTypes.any
 	,	files:PropTypes.array
 	,	multiple:PropTypes.bool
-	,	ImageUploadFieldTemplate:PropTypes.any
+	,	FileImageTemplate:PropTypes.any
 	,	imageWidth:PropTypes.number
 	,	imageHeight:PropTypes.number
 	,	imageClassName:PropTypes.string
 	}
 	static defaultProps = {
-		ImageUploadFieldTemplate:'div'
+		FileImageTemplate:'div'
 	,	imageWidth:50
 	,	imageHeight:50
 	,	imageClassName:'image-container'
@@ -67,16 +67,16 @@ class ImageUploadField extends Component{
 		</Comp>)
 	}
 	renderInput(name,multiple,files){
-		return <UploadField name={name} label={this.props.label} multiple={multiple} files={files} onChange={this.handleChange}/>
+		return <File name={name} label={this.props.label} multiple={multiple} files={files} onChange={this.handleChange}/>
 	}
 	render(){
 		const {files} = this.state;
 		const {name,multiple} = this.props;
-		const Comp = this.props.ImageUploadFieldTemplate;
+		const Comp = this.props.FileImageTemplate;
 		const input = this.renderInput(name,multiple,files);
 		const images = multiple ? this.renderImages(files) : this.renderImage(files);
 		return multiple ? this.renderMultiple(Comp,input,images) : this.renderUnique(Comp,input,images);
 	}
 }
 
-export default ImageUploadField;
+export default FileImage;

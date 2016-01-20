@@ -3,22 +3,14 @@ import makeModel from './makeModel';
 import Validator from './Validator';
 import Studio from './Studio';
 import Photo from './Photo';
+import Person from './Person';
 
-export default makeModel(
+export default Person.extend(
     'Photographer'
 ,   [
-        {
-            name:'name'
-        ,   type:'text'
-        ,   validate:Validator.String
-        }
-    ,	{
+    	{
     		name:'studio'
     	,	type:Studio
     	}
-    ,   {
-            name:'address'
-        ,   type:'text'
-        }
     ]
 );

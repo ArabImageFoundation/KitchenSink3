@@ -183,6 +183,24 @@ export default {
             })
         }
     }
+,   onChangeMultiple:{
+        meta:{
+            path:[]
+        ,   props:{}
+        }
+    ,   reducer(state,{path,props}){
+            if(!props){return state;}
+            const [type,index] = path;
+            return state.updateIn([type,index],function(item){
+                return item.merge({
+                    value:item.get('value').merge(props)
+                ,   saved:false
+                ,   errors:Immutable.Map()
+                ,   valids:Immutable.Map()
+                })
+            })
+        }
+    }
 ,    addColumn:{
         reducer:(state,props)=>{
             const column = Immutable.fromJS({props});
@@ -255,74 +273,13 @@ export default {
             })
         }
     }
+,   route:{
+        meta:{
+            route:[]
+        }
+    ,   reducer(state,{route}){
+            return state.set('route',Immutable.fromJS(route));
+        }
+    }
 }
 
-function create(type){
-    if(type=='Collection'){
-        return {
-            reference:''
-        ,    name:''
-        ,    donor:''
-        ,    acquisition:''
-        ,    content:''
-        ,    contracts:[]
-        ,    photos:[]
-        ,    albums:[]
-        ,    objects:[]
-        }
-    }
-    if(type=='Contract'){
-        return {
-            reference:''
-        ,    status:''
-        ,    type:''
-        ,    researcher:''
-        ,    remarks:''
-        }
-    }
-    if(type=='Photo'){
-        return {
-            title:''
-        ,    subject:''
-        ,    photographer:''
-        ,    studio:''
-        ,    date:''
-        ,    country:''
-        ,    city:''
-        }
-    }
-    if(type=='Photographer'){
-        return {
-            name:''
-        ,    nationality:''
-        ,    studio:''
-        ,    address:''
-        ,    telephone:''
-        ,    birthdate:''
-        ,    deathdate:''
-        ,    biography:''
-        ,    source:''
-        }
-    }
-    if(type=='Studio'){
-        return {
-            name:''
-        ,    address:''
-        ,    telephone:''
-        ,    biography:''
-        ,    source:''
-        }
-    }
-    if(type=='Album'){
-        return {
-            reference:''
-        ,    photos:[]
-        }
-    }
-    if(type=='Object'){
-        return {
-            reference:''
-        ,    photos:[]
-        }
-    }
-}

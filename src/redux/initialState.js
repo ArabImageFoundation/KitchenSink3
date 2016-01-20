@@ -2,6 +2,7 @@ import Immutable from 'immutable';
 
 export default Immutable.fromJS({
 	Collection:[]
+,	route:['','']
 ,	columns:[]
 ,	Photographer:[]
 ,	Photo:[]
@@ -10,4 +11,6 @@ export default Immutable.fromJS({
 ,	Album:[]
 ,	File:[]
 ,	Object:[]
+,	Researcher:[]
+,	Location:[]
 })

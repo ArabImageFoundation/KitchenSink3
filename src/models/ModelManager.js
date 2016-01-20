@@ -1,4 +1,5 @@
 import React,{Component,PropTypes} from 'react';
+import IconRemove from '../UI/IconRemove';
 import cx from 'classnames'
 
 class ModelManager extends Component{
@@ -8,6 +9,7 @@ class ModelManager extends Component{
     ,   mode:PropTypes.oneOf(['List','Load'])
     ,   allowCreate:PropTypes.bool
     ,   allowMultiple:PropTypes.bool
+    ,   allowRemove:PropTypes.bool
     }
     static defaultProps = {
         view:'Summary'
@@ -15,11 +17,13 @@ class ModelManager extends Component{
     ,   allowCreate:true
     ,   allowMultiple:false
     ,   allowLoad:false
+    ,   allowRemove:false
     }
     constructor(props,context){
         super(props,context)
         this.state = {
             searchString:''
+        ,   previouslyChecked:-1
         }
         this.create = this.create.bind(this);
         this.viewSelection = this.viewSelection.bind(this);
@@ -88,30 +92,63 @@ class ModelManager extends Component{
             return that.removeItemFromParent(index);
         }
     }
+    onRadioChange(index){
+        const that = this;
+        return function(evt){
+            const previouslyChecked = that.state.previouslyChecked;
+            const checked = evt.target.checked;
+            that.setState({previouslyChecked:index});
+            if(previouslyChecked>=0 && previouslyChecked!=index){
+                that.removeItemFromParent(previouslyChecked);
+            }
+            if(checked){return that.addItemToParent(index)}
+            return that.removeItemFromParent(index);
+        }
+    }
+    onRemoveItem(index){
+        const that = this;
+        return function(evt){
+            evt.preventDefault();
+            that.removeItemFromParent(index);
+        }
+    }
     getItemPropsForList(index,view){
+        const {allowRemove} = this.props;
         const itemProps = {
             index
         ,   view
         }
         const wrapperProps = {
-            onClick:this.view(index)
-        ,   className:`${this.getTypeName()}-item ${this.getTypeName()}-item-${view} model-item-${view}`
+            className:`${this.getTypeName()}-item ${this.getTypeName()}-item-${view} model-item-${view}`
         }
+        const viewLinkProps = {
+            onClick:this.view(index)
+        ,   className:'view-link'
+        }
+        const removeLinkProps = allowRemove ? {
+            onClick:this.onRemoveItem(index)
+        ,   className:'remove-link'
+        } : null
         return {
             item:itemProps
         ,   wrapper:wrapperProps
+        ,   view:viewLinkProps
+        ,   remove:removeLinkProps
         }
     }
     renderItemForList(props,key){
         const Comp = this.getComponent();
         return (
-            <a {...props.wrapper} key={key}>
-                <Comp {...props.item}/>
-            </a>
+            <span {...props.wrapper} key={key}>
+                <a {...props.view}>
+                    <Comp {...props.item}/>
+                </a>
+                {props.remove && <a  {...props.remove}><IconRemove/></a>}
+            </span>
         )
     }
     isItemIncludedInSearch(index){
-        if(!this.state.searchRegex){return false;}
+        if(!this.state.searchRegex){return true;}
         const reg = this.state.searchRegex;
         const prop = this.getItemDefiningProp(index);
         return reg.test(prop);
@@ -120,22 +157,18 @@ class ModelManager extends Component{
         return this.props.collection.getIn([index,'value','name']);
     }
     getItemParents(index,type,parentIndex){
+        if(parentIndex==null){return null;}
         const collection = this.props.collection;
         const parents = collection.get(index).get('relations');
-        if(!type){
-            return parents.toJS();
-        }
         const specificTypeParents = parents.get(type);
         if(!specificTypeParents){
             return null;
         }
-        if(parentIndex == null){
-            return specificTypeParents.toJS();
-        }
-        return specificTypeParents.get(index);
+        return specificTypeParents.get(parentIndex);
     }
     getItemPropsForLoad(index,view){
         if(!this.isItemIncludedInSearch(index)){return;}
+        const {allowMultiple} = this.props;
         var checked = false;
         if(this.props.parentPath){
             const [parentType,parentIndex] = this.props.parentPath;
@@ -148,8 +181,8 @@ class ModelManager extends Component{
             ,   view
             }
         ,   wrapper:{
-                type:'checkbox'
-            ,   onChange:this.onCheckBoxChange(index)
+                type: allowMultiple ? 'checkbox' : 'radio'
+            ,   onChange: allowMultiple ? this.onCheckBoxChange(index) : this.onRadioChange(index)
             ,   checked
             }
         }
@@ -186,17 +219,19 @@ class ModelManager extends Component{
         return (<div className={className}>
             <input type='text' onChange={this.onChangeSearchString} value={this.state.searchString}/>
             {items}
+            <button onClick={this.props.actions.removeColumn}>ok</button>
         </div>)
     }
     renderList(){
         const items = this.renderItemsFor('List');
         const {allowCreate,allowLoad} = this.props;
         const className = this.getClassName('List');
+        const typeName = this.getTypeName();
         return (<div className={className}>
             {items}
             {(allowCreate || allowLoad) && (<div className='buttonGroup'>
-                {allowCreate && <button onClick={this.create}>Add</button>}
-                {allowLoad && <button onClick={this.viewSelection}>Load</button>}
+                {allowCreate && <button onClick={this.create}>Add {typeName}</button>}
+                {allowLoad && <button onClick={this.viewSelection}>Load {typeName}</button>}
                 </div>)
             }
         </div>)

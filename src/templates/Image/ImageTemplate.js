@@ -1,5 +1,5 @@
 import React,{Component,PropTypes} from 'react';
-import {EMPTY,DONE,ERROR,LOADING} from './constants';
+import {EMPTY,DONE,ERROR,LOADING} from '../constants';
 
 
 class ImageTemplate extends Component{

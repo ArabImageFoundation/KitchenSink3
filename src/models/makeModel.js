@@ -59,6 +59,9 @@ export default function make(name,spec,...methods){
             ,   onChange(path,value){
                     return dispatch(actions.onChange({path,value}))
                 }
+            ,   onChangeMultiple(path,props){
+                    return dispatch(actions.onChangeMultiple({path,props}))
+                }
             ,   removeColumn(){
                     return dispatch(actions.removeColumn())
                 }
@@ -88,7 +91,7 @@ export default function make(name,spec,...methods){
 
     const connectedModel = connect(
         function mapStateToProps(state,{index}){
-            return getItem(state,index) || {};
+            return {...getItem(state,index),db:state} || {db:state};
         }
     ,   mapDispatchToProps
     )(_Model)
@@ -103,7 +106,10 @@ export default function make(name,spec,...methods){
 
     const connectedModelManager = connect(
         function mapStateToProps(state){
-            return {collection:getCollection(state)}
+            return {
+                collection:getCollection(state)
+            ,   db:state
+            }
         }
     ,   mapDispatchToProps
     )(_ModelManager);

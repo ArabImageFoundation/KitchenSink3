@@ -2,7 +2,7 @@ import React,{Component,PropTypes} from 'react';
 import readableURLPropType from './readableURLPropType';
 import load from './load';
 import createDOMImage from './createDOMImage';
-import {EMPTY,DONE,ERROR,LOADING} from './constants';
+import {EMPTY,DONE,ERROR,LOADING} from '../constants';
 import ImageTemplate from './ImageTemplate'
 
 class Image extends Component{

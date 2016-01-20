@@ -97,19 +97,21 @@ class Model extends Component{
         const maxReached = include.length >= max;
         const allowLoad = maxReached ? false : getDef(options.allowLoad,true);
         const allowCreate = maxReached? false : getDef(options.allowCreate,true);
+        const allowRemove = getDef(options.allowRemove,true);
         return {
         	include
         ,	Comp
         ,	parentPath
         ,   allowLoad
         ,   allowCreate
+        ,   allowRemove
         };
     }
     renderRelation(name,props,key){
         if(this[`renderRelation_${name}`]){
             return this[`renderRelation_${name}`](props,key);
         }
-        const {Comp,include,parentPath,allowCreate,allowLoad} = props;
+        const {Comp,include,parentPath,allowCreate,allowLoad,allowRemove} = props;
         const managerProps = {
         	include
         ,	mode:'List'
@@ -117,6 +119,7 @@ class Model extends Component{
         ,	parentPath
         ,   allowLoad
         ,   allowCreate
+        ,   allowRemove
         }
         return (<div key={key}>
             <label>{name}</label>
@@ -170,8 +173,9 @@ class Model extends Component{
             <div key={key} className={className}>
                 <label {...props.label}>{props.title}</label>
                 <div className='input-field'>
-                    <textarea {...props.input}/>
+                    <textarea {...props.input} rows={5} cols={10}/>
                     {props.isValid && <IconCheck/>}
+                    <i className='material-icons keyboard_return'>keyboard_return</i>
                 </div>
                 <div className='input-info'>
                     {props.errors && props.errors.map((err,index)=><MessageError key={index} text={err.replace('$key$',props.title)}/>)}
@@ -257,6 +261,7 @@ class Model extends Component{
         return this.props.view || 'Summary';
     }
     summary(){
+        if(this.getSummary){return this.getSummary();}
         const inputs = this.getSpec();
         const main = inputs[0];
         const propName = main.name;
@@ -271,11 +276,11 @@ class Model extends Component{
         )
     }
     renderSummary(){
-        const summary = this.summary();
+        const _summary = this.summary();
         const hasErrors = this.props.hasErrors;
         const className = this.getClassName('Summary');
         return (<div className={className}>
-                {summary}
+                {_summary}
                 {hasErrors && <IconError/>}
         </div>)
     }

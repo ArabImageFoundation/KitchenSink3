@@ -1,1 +1,0 @@
-export ModelStruct from './ModelStruct';

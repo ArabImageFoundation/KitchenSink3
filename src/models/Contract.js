@@ -2,6 +2,7 @@ import React,{Component} from 'react'
 import makeModel from './makeModel';
 import Validator from './Validator';
 import Photo from './Photo';
+import Researcher from './Researcher';
 
 export default makeModel(
     'Contract'
@@ -9,7 +10,10 @@ export default makeModel(
         'reference'
     ,   'status'
     ,   'type'
-    ,   'researcher'
+    ,   {
+            name:'Researcher'
+        ,   type:Researcher
+        }
     ,   {
             name:'date_arrival'
         ,   label:'date of arrival'

@@ -1,21 +1,10 @@
 import React,{Component} from 'react'
 import makeModel from './makeModel';
 import Validator from './Validator';
+import Location from './Location';
+import Person from './Person';
 
-export default makeModel(
+export default Person.extend(
     'Studio'
-,   [
-        {
-            name:'name'
-        ,   type:'text'
-        }
-    ,   {
-            name:'address'
-        ,   type:'text'
-        }
-    ,   {
-            name:'telephone'
-        ,   type:'tel'
-        }
-    ]
+,   []
 );

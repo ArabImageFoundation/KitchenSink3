@@ -1,7 +1,8 @@
 import React,{Component} from 'react'
 import makeModel from './makeModel';
 import Validator from './Validator';
-import Image,{ImageUploadField,UploadField} from '../Fields/Image'
+import Image from '../templates/Image'
+import FileImage from '../templates/FileImage'
 
 export default makeModel(
     'File'
@@ -46,6 +47,6 @@ export default makeModel(
             }
         ,   files:props.input.value
         })
-        return (<div style={{clear:'both',width:'100%'}} key={key}><ImageUploadField {...uploadFieldProps}/></div>)
+        return (<div style={{clear:'both',width:'100%'}} key={key}><FileImage {...uploadFieldProps}/></div>)
     }
 );
