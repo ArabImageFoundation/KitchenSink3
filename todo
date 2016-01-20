@@ -1,3 +1,24 @@
 - make main page look cooler
-- add router
-- see why can't delete items sometimes
+- make each page have its own view:
+	- Photographers: show some photos
+	- Photos: as a grid
+	- Contracts: stats:
+		- Number of paper photographs
+		- Number of glass photographs
+		- Number of film photographs
+		- Number of framed photographs
+		- Number of unidentified photographs
+		- total number of photographs
+		- number of photo albums
+		- number of objects
+		- number of AV materials
+		- Number of contact-printed photographs
+		- Number of digital
+		- Number of reproduced on film
+		- Number of low res
+		- Number of high-res
+		- Number of annotated photographs
+		- Number of photographs published
+- see bug: can't delete items sometimes
+- allow "published" property in "photo" to be tabbed to with keyboard
+- Allow "escape" key to exit a column

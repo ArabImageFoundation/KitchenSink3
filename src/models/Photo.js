@@ -4,6 +4,7 @@ import Validator from './Validator';
 import File from './File';
 import Photographer from './Photographer';
 import Studio from './Studio';
+import Location from './Location';
 
 export default makeModel(
     'Photo'
@@ -11,6 +12,46 @@ export default makeModel(
         'reference'
     ,   'title'
     ,   'subject'
+    ,   'tags'
+    ,   {
+            name:'published'
+        ,   type:'checkbox'
+        }
+    ,   'genre'
+    ,   'condition'
+    ,   'support'
+    ,   'process'
+    ,   'tone'
+    ,   {
+            name:'width'
+        ,   type:'number'
+        }
+    ,   {
+            name:'height'
+        ,   type:'number'
+        }
+    ,   'ratio'
+    ,   {
+            name:'inscriptions'
+        ,   type:'textarea'
+        }
+    ,   {
+            name:'remarks'
+        ,   type:'textarea'
+        }
+    ,   {
+            name:'date'
+        ,   label:'date'
+        ,   type:'date'
+        }
+    ,   {
+            name:'recto'
+        ,   type:File
+        }
+    ,   {
+            name:'verso'
+        ,   type:File
+        }
     ,   {
             name:'Photographer'
         ,   type:Photographer
@@ -32,12 +73,34 @@ export default makeModel(
             }
         }
     ,   {
-            name:'recto'
-        ,   type:File
+            name:'location'
+        ,   type:Location
+        ,   options:{
+                max:1
+            ,   allowCreate:true
+            ,   allowRemove:false
+            ,   allowLoad:false
+            }
         }
     ,   {
-            name:'verso'
-        ,   type:File
+            name:'borderWidth'
+        ,   label:'border width'
+        ,   type:'number'
+        }
+    ,   {
+            name:'borderHeight'
+        ,   label:'border height'
+        ,   type:'number'
+        }
+    ,   {
+            name:'mountWidth'
+        ,   label:'Mount/Frame width'
+        ,   type:'number'
+        }
+    ,   {
+            name:'mountHeight'
+        ,   label:'Mount/Frame height'
+        ,   type:'number'
         }
     ]
 ,   function renderSummary(){

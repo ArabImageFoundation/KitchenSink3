@@ -15,6 +15,11 @@ export default [
 		]
 	}
 ,	{
+		route:'photographers'
+	,	icon:'person'
+	,	title:'Photographers'
+	}
+,	{
 		route:'photos'
 	,	icon:'photo'
 	,	title:'Photos'

@@ -43,6 +43,10 @@ class App extends Component{
             page = <Models.Photo.Manager childrenView='Form' mode='List'/>
             title = 'Photos';
         }
+        else if(route[0] == 'photographers'){
+            page = <Models.Photographer.Manager childrenView='Form' mode='List'/>
+            title = 'Photographers';   
+        }
         else{
             page = <Models.Collection.Manager childrenView='Form'/>
             title = 'Collections';

@@ -25,5 +25,9 @@ export default makeModel(
             name:'telephone'
         ,   type:'tel'
         }
+    ,   {
+            name:'biography'
+        ,   type:'textarea'
+        }
     ]
 );

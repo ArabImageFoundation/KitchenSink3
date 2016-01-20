@@ -12,6 +12,11 @@ export default makeModel(
     ,   'reference'
     ,   'donor'
     ,   'acquisition'
+    ,   {
+            name:'date'
+        ,   label:'date'
+        ,   type:'date'
+        }
     ,   Contract
     ]
 ,	function renderSummary(){

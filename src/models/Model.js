@@ -58,6 +58,16 @@ class Model extends Component{
             that.setOnChangeTimeoutFor(name,path);
         }
     }
+    onCheckboxChange(name){
+        const that = this;
+        const actions = this.props.actions;
+        const path = this.getPath(name);
+        return function(evt,val){
+            const value = evt.target.checked;
+            actions.onChange(path,value);
+            that.setOnChangeTimeoutFor(name,path);
+        }
+    }
     getValidator(){
         return this.constructor.validator;
     }
@@ -126,6 +136,34 @@ class Model extends Component{
             <Comp.Manager {...managerProps}/>
         </div>)
     }
+    getInputPropsType_checkbox(spec){
+        var {name,label,help} = spec;
+        const type = 'checkbox';
+        label = getDef(label,name);
+        const focused = this.state.focused == name;
+        const id = `${this.getTypeName()}[${this.props.index}][${name}]`;
+
+        const labelProps = {
+            htmlFor:id
+        }
+        const inputProps = {
+            onChange:this.onCheckboxChange(name)
+        ,   onBlur:this.onBlur(name)
+        ,   onFocus:this.onFocus(name)
+        ,   checked:this.getValueFor(name)
+        ,   type
+        ,   id
+        }
+        return {
+            label:labelProps
+        ,   input:inputProps
+        ,   title:label
+        ,   errors:this.getErrorsFor(name)
+        ,   isValid:this.getIsValidFor(name)
+        ,   focused
+        ,   help
+        }
+    }
     getInputProps(spec){
         var {name,label,help,type} = spec;
         if(this[`getInputProps_${name}`]){
@@ -184,6 +222,29 @@ class Model extends Component{
             </div>
         )
 
+    }
+    renderInputType_checkbox(name,props,key){
+        console.log(props.input)
+        const className = cx(
+            'input-control input-control-checkbox'
+        ,   {
+                focused:props.focused
+            ,   checked:props.input.checked
+            }
+        )
+
+        return (
+            <div key={key} className={className}>
+                <div className='input-field input-field-checkbox'>
+                    <input {...props.input}/>
+                </div>
+                <label {...props.label} tabIndex={0}>{props.title}</label>
+                <div className='input-info'>
+                    {props.errors && props.errors.map((err,index)=><MessageError key={index} text={err.replace('$key$',props.title)}/>)}
+                    {props.help && <MessageHelp text={props.help}/>}
+                </div>
+            </div>
+        )       
     }
     renderInput(name,props,key,type){
         if(this[`renderInput_${name}`]){
